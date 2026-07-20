@@ -116,6 +116,11 @@
   .modal-box p { font-size: 13.5px; color: var(--sub); line-height: 1.7; margin-bottom: 18px; }
   #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; z-index: 300; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- キーボード表示時 ---- */
+  body.kb-open .hero-body { display: none; }
+  body.kb-open .hero { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); }
+  body.kb-open .sheet { max-height: 100%; padding-bottom: 16px; }
 </style>
 </head>
 <body>
@@ -606,24 +611,17 @@ document.addEventListener('DOMContentLoaded', init);
 // iOSキーボード対策: visualViewportに合わせて#rootの高さを追従させる
 if (window.visualViewport) {
   const vv = window.visualViewport;
-  let fitRaf = null;
   const fit = () => {
-    if (fitRaf) cancelAnimationFrame(fitRaf);
-    fitRaf = requestAnimationFrame(() => {
-      const root = document.getElementById('root');
-      if (!root) return;
-      const kb = window.innerHeight - vv.height;
-      root.style.height = (kb > 60 ? vv.height : window.innerHeight) + 'px';
-      window.scrollTo(0, 0);
-      // フォーカス中の入力欄をシート内で見える位置へ
-      const ae = document.activeElement;
-      if (kb > 60 && ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
-        ae.scrollIntoView({ block: 'nearest' });
-      }
-    });
+    const root = document.getElementById('root');
+    if (!root) return;
+    const kb = window.innerHeight - vv.height;
+    const open = kb > 60;
+    const target = open ? Math.round(vv.height) + 'px' : '';
+    if (root.style.height !== target) root.style.height = target;
+    document.body.classList.toggle('kb-open', open);
+    if (open && (window.scrollY || document.documentElement.scrollTop)) window.scrollTo(0, 0);
   };
   vv.addEventListener('resize', fit);
-  vv.addEventListener('scroll', fit);
 }
 </script>
 </body>
