@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リモート査定 | Telesatei</title>
+<style>
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E0DDD8;
+    --text: #1A1916;
+    --sub: #7A7770;
+    --accent: #2B4C3F;
+    --accent-light: #EAF0EC;
+    --danger: #C0392B;
+    --tag-bg: #F0EDE8;
+    --radius: 10px;
+    --font: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: var(--font);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+  }
+  header { text-align: center; margin-bottom: 32px; }
+  header .label {
+    font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--sub); margin-bottom: 6px;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: .02em; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--sub); margin-bottom: 14px;
+  }
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+  input[type="text"], input[type="number"], input[type="password"], select, textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 7px;
+    padding: 10px 12px; font-size: 15px; font-family: var(--font);
+    background: var(--bg); color: var(--text);
+    appearance: none; -webkit-appearance: none; outline: none; transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7770' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cat-btn {
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 12px 8px;
+    font-size: 13px; font-weight: 600; font-family: var(--font);
+    background: var(--bg); color: var(--sub); cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .cat-btn.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .cart-list { display: flex; flex-direction: column; gap: 8px; }
+  .cart-item {
+    background: var(--tag-bg); border-radius: 8px; padding: 10px 12px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  }
+  .cart-item-info { flex: 1; }
+  .cart-item-num { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; margin-bottom: 2px; }
+  .cart-item-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .cart-item-img { font-size: 11px; color: var(--sub); margin-top: 3px; }
+  .del-btn { background: none; border: none; color: var(--sub); font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+  .img-upload-area {
+    border: 1.5px dashed var(--border); border-radius: 8px; padding: 16px;
+    text-align: center; cursor: pointer; background: var(--bg); transition: border-color .15s;
+  }
+  .img-upload-area:hover { border-color: var(--accent); }
+  .img-upload-area input { display: none; }
+  .img-upload-label { font-size: 13px; color: var(--sub); cursor: pointer; }
+  .img-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .img-preview-item { position: relative; width: 64px; height: 64px; }
+  .img-preview-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+  .img-preview-item .rm-img {
+    position: absolute; top: -4px; right: -4px; width: 18px; height: 18px;
+    border-radius: 50%; background: var(--danger); color: #fff; font-size: 11px;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .btn {
+    display: block; width: 100%; padding: 14px; border-radius: 9px;
+    font-size: 15px; font-weight: 700; font-family: var(--font);
+    cursor: pointer; border: none; transition: opacity .15s, transform .1s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-ghost { background: var(--tag-bg); color: var(--sub); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-row .btn { flex: 1; }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: #fff; padding: 12px 20px; border-radius: 9px;
+    font-size: 13px; font-weight: 600; opacity: 0; transition: opacity .25s, transform .25s;
+    pointer-events: none; white-space: nowrap; z-index: 99;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .empty-cart { text-align: center; color: var(--sub); font-size: 13px; padding: 12px 0; }
+  .submit-result {
+    background: var(--accent-light); border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 20px; text-align: center; margin-top: 16px; display: none;
+  }
+  .submit-result.show { display: block; }
+  .submit-result h2 { color: var(--accent); font-size: 18px; margin-bottom: 8px; }
+  .submit-result p { font-size: 14px; color: var(--sub); }
+  .check-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;
+  }
+  .check-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 8px 10px; cursor: pointer;
+    font-size: 13px; color: var(--text); transition: all .15s;
+  }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-item.checked {
+    border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 600;
+  }
+  .check-icon { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .check-item.checked .check-icon { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .rank-grid { display: flex; gap: 6px; }
+  .rank-btn {
+    flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 4px;
+    font-size: 14px; font-weight: 700; font-family: var(--font);
+    background: var(--bg); color: var(--sub); cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .rank-btn.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .brand-search-wrap { position: relative; }
+  .brand-search-input {
+    width: 100%; border: 1px solid var(--border); border-radius: 7px;
+    padding: 10px 12px; font-size: 15px; font-family: var(--font);
+    background: var(--bg); color: var(--text); outline: none; transition: border-color .15s;
+  }
+  .brand-search-input:focus { border-color: var(--accent); background: #fff; }
+  .brand-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+    margin-top: 4px; max-height: 200px; overflow-y: auto; display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .brand-dropdown.open { display: block; }
+  .brand-option {
+    padding: 10px 12px; font-size: 14px; cursor: pointer; color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-option:last-child { border-bottom: none; }
+  .brand-option:hover { background: var(--accent-light); color: var(--accent); }
+  .brand-selected { color: var(--accent); font-weight: 600; }
+  .pat-note { font-size: 13px; color: var(--sub); margin-bottom: 14px; line-height: 1.6; }
+  .pat-reset { font-size: 12px; color: var(--sub); text-align: right; margin-top: 8px; cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<!-- PAT Setup Screen -->
+<div id="pat-screen" style="display:none">
+  <header>
+    <img src="telesatei.png" alt="TELESA:TEI" style="height:80px;margin-bottom:8px">
+    <h1>初期設定</h1>
+  </header>
+  <div class="card">
+    <div class="card-title">Asana APIキー</div>
+    <p class="pat-note">Asana の Personal Access Token を入力してください。このデバイスのブラウザに保存されます。</p>
+    <div class="field">
+      <label>Personal Access Token</label>
+      <input type="password" id="pat-input" placeholder="1/xxxxxxxxxx...">
+    </div>
+    <button class="btn btn-primary" onclick="savePat()">保存して開始</button>
+  </div>
+</div>
+<!-- Main App -->
+<div id="main-app" style="display:none">
+<header>
+  <img src="telesatei2.png" alt="TELESA:TEI" style="height:80px;margin-bottom:8px">
+  <h1>リモート査定 依頼フォーム</h1>
+</header>
+<!-- STEP 1: Header info -->
+<div class="card" id="section-header">
+  <div class="card-title">依頼情報</div>
+  <div class="field">
+    <label>店舗</label>
+    <div class="brand-search-wrap">
+      <input type="text" class="brand-search-input" id="store-input"
+        placeholder="店舗名を入力（例：な…成田店）"
+        oninput="searchStore(this)" onblur="closeStoreDrop()" autocomplete="off">
+      <div class="brand-dropdown" id="store-drop"></div>
+    </div>
+    <div id="store-loading" style="font-size:12px;color:var(--sub);margin-top:4px;display:none">メンバー取得中...</div>
+  </div>
+  <div class="field">
+    <label>起票者名</label>
+    <input type="text" id="requester" placeholder="例：菊地">
+  </div>
+  <div class="field">
+    <label>総点数（予定）</label>
+    <input type="number" id="total-items" placeholder="例：3" min="1" inputmode="numeric" oninput="toHankaku(this)">
+  </div>
+  <div class="field">
+    <label>リピーター</label>
+    <div style="display:flex;gap:8px">
+      <button class="rank-btn" data-repeater="はい" onclick="selectRepeater(this)" style="flex:1">はい</button>
+      <button class="rank-btn" data-repeater="いいえ" onclick="selectRepeater(this)" style="flex:1">いいえ</button>
+    </div>
+  </div>
+  <div class="field">
+    <label>相見積もりですか？</label>
+    <div style="display:flex;gap:8px">
+      <button class="rank-btn" data-aimi="はい" onclick="selectAimi(this)" style="flex:1">はい</button>
+      <button class="rank-btn" data-aimi="いいえ" onclick="selectAimi(this)" style="flex:1">いいえ</button>
+    </div>
+  </div>
+  <div class="field" id="field-reiten" style="display:none">
+    <label>再来店ですか？</label>
+    <div style="display:flex;gap:8px">
+      <button class="rank-btn" data-reiten="はい" onclick="selectReiten(this)" style="flex:1">はい</button>
+      <button class="rank-btn" data-reiten="いいえ" onclick="selectReiten(this)" style="flex:1">いいえ</button>
+    </div>
+  </div>
+  <div class="pat-reset" onclick="resetPat()">APIキーを変更する</div>
+</div>
+<!-- STEP 2: Item entry -->
+<div class="card" id="section-item">
+  <div class="card-title">商品を追加</div>
+  <div class="field">
+    <label>カテゴリ</label>
+    <div class="cat-grid" id="cat-grid">
+      <button class="cat-btn" data-cat="ブランドバッグ" onclick="selectCat(this)">ブランドバッグ</button>
+      <button class="cat-btn" data-cat="ブランド小物" onclick="selectCat(this)">ブランド小物</button>
+      <button class="cat-btn" data-cat="ブランドジュエリー" onclick="selectCat(this)">ブランドジュエリー</button>
+      <button class="cat-btn" data-cat="時計" onclick="selectCat(this)">時計</button>
+      <button class="cat-btn" data-cat="貴金属" onclick="selectCat(this)">貴金属</button>
+    </div>
+  </div>
+  <!-- ブランドバッグ / ブランド小物 共通 -->
+  <div id="fields-bag" style="display:none">
+    <div class="field">
+      <label>ブランド <span style="color:var(--danger)">*</span></label>
+      <div class="brand-search-wrap">
+        <input type="text" class="brand-search-input" id="brand-bag" placeholder="ブランド名を入力（例：るい）" oninput="searchBrand(this,'brand-bag-drop')" onblur="closeDrop('brand-bag-drop')" autocomplete="off">
+        <div class="brand-dropdown" id="brand-bag-drop"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>商品名 <span style="color:var(--danger)">*</span></label>
+      <input type="text" id="name-bag" placeholder="例：ネヴァーフルMM">
+    </div>
+    <div class="field">
+      <label>型番（わかる範囲で）</label>
+      <input type="text" id="serial-bag" placeholder="例：M40156">
+    </div>
+  </div>
+  <!-- ブランドジュエリー -->
+  <div id="fields-jewelry" style="display:none">
+    <div class="field">
+      <label>ブランド <span style="color:var(--danger)">*</span></label>
+      <div class="brand-search-wrap">
+        <input type="text" class="brand-search-input" id="brand-jewelry" placeholder="ブランド名を入力（例：てぃふ）" oninput="searchBrand(this,'brand-jewelry-drop')" onblur="closeDrop('brand-jewelry-drop')" autocomplete="off">
+        <div class="brand-dropdown" id="brand-jewelry-drop"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>商品名 <span style="color:var(--danger)">*</span></label>
+      <input type="text" id="name-jewelry" placeholder="例：ラブリング">
+    </div>
+    <div class="field">
+      <label>金属種類 <span style="color:var(--danger)">*</span></label>
+      <select id="metal">
+        <option value="">選択してください</option>
+        <option>K24</option><option>K18</option><option>Pt950</option><option>不明</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>型番（わかる範囲で）</label>
+      <input type="text" id="serial-jewelry" placeholder="例：B4085400">
+    </div>
+  </div>
+  <!-- ブランド共通：特記事項（バッグ/小物/ジュエリー） -->
+  <div id="field-brand-notes" style="display:none">
+    <div class="field">
+      <label>特記事項はありますか？</label>
+      <div style="display:flex;gap:8px">
+        <button class="rank-btn" data-brandnote="はい" onclick="selectBrandNote(this)" style="flex:1">はい</button>
+        <button class="rank-btn" data-brandnote="いいえ" onclick="selectBrandNote(this)" style="flex:1">いいえ</button>
+      </div>
+    </div>
+    <div id="brand-note-checks" style="display:none">
+      <div class="field">
+        <label>状態（複数選択可）</label>
+        <div class="check-grid">
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="傷"><span class="check-icon"></span>傷</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="汚れ"><span class="check-icon"></span>汚れ</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="シミ"><span class="check-icon"></span>シミ</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="色褪せ"><span class="check-icon"></span>色褪せ</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="歪み"><span class="check-icon"></span>歪み</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="変色"><span class="check-icon"></span>変色</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="さび"><span class="check-icon"></span>さび</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="メッキ剥げ"><span class="check-icon"></span>メッキ剥げ</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="石取れ"><span class="check-icon"></span>石取れ</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="臭いあり"><span class="check-icon"></span>臭いあり</div>
+          <div class="check-item brand-note-item" onclick="toggleCheck(this)" data-value="破れや破損"><span class="check-icon"></span><span style="color:var(--danger);font-weight:700">破れや破損</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 時計 -->
+  <div id="fields-watch" style="display:none">
+    <div class="field">
+      <label>ブランド <span style="color:var(--danger)">*</span></label>
+      <div class="brand-search-wrap">
+        <input type="text" class="brand-search-input" id="brand-watch" placeholder="ブランド名を入力（例：ろれ）" oninput="searchBrand(this,'brand-watch-drop')" onblur="closeDrop('brand-watch-drop')" autocomplete="off">
+        <div class="brand-dropdown" id="brand-watch-drop"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>商品名 <span style="color:var(--danger)">*</span></label>
+      <input type="text" id="name-watch" placeholder="例：デイトナ">
+    </div>
+    <div class="field">
+      <label>型番</label>
+      <input type="text" id="model-watch" placeholder="例：116500LN">
+    </div>
+    <div class="field">
+      <label>シリアル</label>
+      <input type="text" id="serial-watch" placeholder="例：F123456">
+    </div>
+    <div class="field">
+      <label>ケースサイズ（横幅） <span style="color:var(--danger)">*</span></label>
+      <input type="text" id="size-w" placeholder="例：40mm" inputmode="decimal" oninput="toHankaku(this)">
+    </div>
+    <div class="field">
+      <label>ターボテスター <span style="color:var(--danger)">*</span></label>
+      <div style="display:flex;gap:8px">
+        <button class="rank-btn" data-turbo="済" onclick="selectTurbo(this)" style="flex:1">済</button>
+        <button class="rank-btn" data-turbo="不可" onclick="selectTurbo(this)" style="flex:1">不可</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>付属品</label>
+      <div class="check-grid" id="watch-accessories-grid">
+        <div class="check-item watch-acc" onclick="toggleCheckAcc(this)" data-value="箱"><span class="check-icon"></span>箱</div>
+        <div class="check-item watch-acc" onclick="toggleCheckAcc(this)" data-value="ギャランティカード"><span class="check-icon"></span>ギャランティカード</div>
+        <div class="check-item watch-acc" onclick="toggleCheckAcc(this)" data-value="ベルト"><span class="check-icon"></span>ベルト</div>
+        <div class="check-item watch-acc" onclick="toggleCheckAcc(this)" data-value="コマ（あまり）"><span class="check-icon"></span>コマ（あまり）</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>どんな状態（複数選択可）</label>
+      <div class="check-grid">
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="ガラス傷・欠け"><span class="check-icon"></span>ガラス傷・欠け</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="レザーひび割れ"><span class="check-icon"></span>レザーひび割れ</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="稼働"><span class="check-icon"></span>稼働</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="動作不可"><span class="check-icon"></span>動作不可</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="カレンダー送り不良"><span class="check-icon"></span>カレンダー送り不良</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="使用傷"><span class="check-icon"></span>使用傷</div>
+        <div class="check-item watch-cond" onclick="toggleCheck(this)" data-value="バンド非純正"><span class="check-icon"></span>バンド非純正</div>
+      </div>
+    </div>
+  </div>
+  <!-- 貴金属 -->
+  <div id="fields-metal" style="display:none">
+    <div class="field">
+      <label>金種 <span style="color:var(--danger)">*</span></label>
+      <select id="kinshu">
+        <option value="">選択してください</option>
+        <option>K24</option><option>K18</option><option>K14</option><option>K10</option>
+        <option>Pt1000</option><option>Pt950</option><option>Pt900</option><option>Pt850</option>
+        <option>インゴットK</option><option>インゴットP</option><option>コンビ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>総重量（g） <span style="color:var(--danger)">*</span></label>
+      <input type="text" id="weight-metal" placeholder="例：15.2" inputmode="decimal" oninput="toHankaku(this)">
+    </div>
+    <div class="field">
+      <label>比重値 <span style="color:var(--danger)">*</span> <span style='color:var(--danger);font-size:11px'>※数値入力 or「できなかった」を選択</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="hiju-val" placeholder="数値" style="flex:1" inputmode="decimal" oninput="toHankaku(this)">
+        <button class="rank-btn" id="hiju-ng-btn" data-hiju="できなかった" onclick="toggleHijuNG(this)" style="flex:1;font-size:12px">できなかった</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>磁性 <span style="color:var(--danger)">*</span></label>
+      <div style="display:flex;gap:8px">
+        <button class="rank-btn" data-jsei="有" onclick="selectJsei(this)" style="flex:1">有</button>
+        <button class="rank-btn" data-jsei="無" onclick="selectJsei(this)" style="flex:1">無</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>主石・脇石 <span style="color:var(--danger)">*</span> <span style="color:var(--sub);font-size:11px">貴金属についている石を記載してください</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="rank-btn" data-stone="なし" onclick="selectStone(this)">なし</button>
+        <button class="rank-btn" data-stone="主石のみ" onclick="selectStone(this)">主石のみ</button>
+        <button class="rank-btn" data-stone="脇石のみ" onclick="selectStone(this)">脇石のみ</button>
+        <button class="rank-btn" data-stone="両方" onclick="selectStone(this)">両方</button>
+      </div>
+    </div>
+    <div class="field" id="field-stone-main" style="display:none">
+      <label>主石 種類</label>
+      <select id="stone-main-select">
+        <option value="">選択してください</option>
+        <option>ダイヤモンド</option><option>ルビー</option><option>サファイア</option>
+        <option>エメラルド</option><option>パール</option><option>アクアマリン</option>
+        <option>アメジスト</option><option>トパーズ</option><option>オパール</option>
+        <option>ターコイズ</option><option>ガーネット</option><option>ペリドット</option>
+        <option>タンザナイト</option><option>スピネル</option><option>ムーンストーン</option>
+        <option>アレキサンドライト</option><option>ジルコン</option><option>コーラル</option>
+        <option>ラピスラズリ</option><option>不明</option>
+      </select>
+    </div>
+    <div class="field" id="field-stone-waki" style="display:none">
+      <label>脇石 種類</label>
+      <select id="stone-waki-select">
+        <option value="">選択してください</option>
+        <option>ダイヤモンド</option><option>ルビー</option><option>サファイア</option>
+        <option>エメラルド</option><option>パール</option><option>アクアマリン</option>
+        <option>アメジスト</option><option>トパーズ</option><option>オパール</option>
+        <option>ターコイズ</option><option>ガーネット</option><option>ペリドット</option>
+        <option>タンザナイト</option><option>スピネル</option><option>ムーンストーン</option>
+        <option>アレキサンドライト</option><option>ジルコン</option><option>コーラル</option>
+        <option>ラピスラズリ</option><option>不明</option>
+      </select>
+    </div>
+    <div class="field" id="field-gem" style="display:none">
+      <label>ジェムテスター（石があれば）</label>
+      <div style="display:flex;gap:8px">
+        <button class="rank-btn" data-gem="済" onclick="selectGem(this)" style="flex:1">済</button>
+        <button class="rank-btn" data-gem="不可" onclick="selectGem(this)" style="flex:1">不可</button>
+      </div>
+    </div>
+    <div class="field" id="field-dia" style="display:none">
+      <label>ダイヤテスター（ダイヤがあれば）</label>
+      <div style="display:flex;gap:8px">
+        <button class="rank-btn" data-dia="OK" onclick="selectDia(this)" style="flex:1">OK</button>
+        <button class="rank-btn" data-dia="NG" onclick="selectDia(this)" style="flex:1">NG</button>
+      </div>
+    </div>
+    <div class="field" id="field-ct" style="display:none">
+      <label>ct（主石 / 脇石）</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="text" id="ct-top" placeholder="主石" inputmode="decimal" oninput="toHankaku(this)">
+        <input type="text" id="ct-waki" placeholder="脇石" inputmode="decimal" oninput="toHankaku(this)">
+      </div>
+    </div>
+  </div>
+  <!-- 状態（全カテゴリ共通） -->
+  <div id="field-condition" style="display:none">
+    <div class="field">
+      <label>状態</label>
+      <div class="rank-grid">
+        <button class="rank-btn" data-rank="S" onclick="selectRank(this)">S</button>
+        <button class="rank-btn" data-rank="A" onclick="selectRank(this)">A</button>
+        <button class="rank-btn" data-rank="B" onclick="selectRank(this)">B</button>
+        <button class="rank-btn" data-rank="C" onclick="selectRank(this)">C</button>
+        <button class="rank-btn" data-rank="D" onclick="selectRank(this)">D</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>どんな状態（複数選択可）</label>
+      <div class="check-grid" id="condition-checks">
+        <div class="check-item" onclick="toggleCheck(this)" data-value="傷"><span class="check-icon"></span>傷</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="擦り傷"><span class="check-icon"></span>擦り傷</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="汚れ"><span class="check-icon"></span>汚れ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="シミ"><span class="check-icon"></span>シミ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="カビ"><span class="check-icon"></span>カビ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="色褪せ"><span class="check-icon"></span>色褪せ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="金具の傷"><span class="check-icon"></span>金具の傷</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="ちぎれかけ"><span class="check-icon"></span>ちぎれかけ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="破れ"><span class="check-icon"></span>破れ</div>
+        <div class="check-item" onclick="toggleCheck(this)" data-value="臭い"><span class="check-icon"></span>臭い</div>
+      </div>
+    </div>
+  </div>
+  <!-- 画像 -->
+  <div class="field" id="field-images" style="display:none">
+    <label>画像</label>
+    <div class="img-upload-area" onclick="document.getElementById('img-input').click()">
+      <input type="file" id="img-input" accept="image/*" multiple onchange="addImages(this)">
+      <div class="img-upload-label">タップして画像を追加（複数可）</div>
+    </div>
+    <div class="img-preview" id="img-preview"></div>
+  </div>
+  <div class="btn-row" id="item-actions" style="display:none">
+    <button class="btn btn-ghost" onclick="resetItem()">リセット</button>
+    <button class="btn btn-primary" onclick="addToCart()">商品追加完了</button>
+  </div>
+</div>
+<!-- Cart -->
+<div class="card" id="section-cart">
+  <div class="card-title">追加済み商品</div>
+  <div class="cart-list" id="cart-list">
+    <div class="empty-cart">まだ商品がありません</div>
+  </div>
+  <hr class="divider">
+  <div class="card-title" style="margin-top:4px;color:var(--danger)">預かり対応商品</div>
+  <div class="cart-list" id="azukari-list">
+    <div class="empty-cart">預かり品なし</div>
+  </div>
+  <hr class="divider">
+  <button class="btn btn-primary" id="submit-btn" onclick="submitToAsana()" disabled>
+    Asanaに送信
+  </button>
+</div>
+<div class="submit-result" id="submit-result">
+  <h2>✓ 送信完了</h2>
+  <p id="submit-task-link"></p>
+  <br>
+  <button class="btn btn-secondary" onclick="resetAll()">新しい依頼を作成</button>
+</div>
+</div><!-- /main-app -->
+<div id="toast"></div>
+<script>
+// ===== CONFIG =====
+const ASANA_PROJECT_ID = '1215896672136706';
+const AZUKARI_SECTION_ID = '1215896672136707';
+let ASANA_PAT = '';
+// ==================
+let cart = [];
+let azukariCart = [];
+let currentCat = null;
+let currentImages = [];
+let projectMembers = []; // {gid, name}
+let selectedMember = null; // {gid, name}
+// --- PAT management ---
+function init() {
+  const saved = localStorage.getItem('asana_pat');
+  if (saved) {
+    ASANA_PAT = saved;
+    showApp();
+  } else {
+    document.getElementById('pat-screen').style.display = 'block';
+  }
+}
+function savePat() {
+  const val = document.getElementById('pat-input').value.trim();
+  if (!val) return showToast('APIキーを入力してください');
+  ASANA_PAT = val;
+  localStorage.setItem('asana_pat', val);
+  document.getElementById('pat-screen').style.display = 'none';
+  showApp();
+}
+function showApp() {
+  document.getElementById('main-app').style.display = 'block';
+  fetchProjectMembers();
+}
+async function fetchProjectMembers() {
+  document.getElementById('store-loading').style.display = 'block';
+  try {
+    const res = await fetch(`https://app.asana.com/api/1.0/projects/${ASANA_PROJECT_ID}/members?opt_fields=gid,name`, {
+      headers: { 'Authorization': `Bearer ${ASANA_PAT}`, 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+    projectMembers = (data.data || []).map(m => ({ gid: m.gid, name: m.name }));
+  } catch(e) { /* サイレントフェイル */ }
+  document.getElementById('store-loading').style.display = 'none';
+}
+function searchStore(input) {
+  const q = input.value.trim();
+  const drop = document.getElementById('store-drop');
+  selectedMember = null;
+  updateSubmitBtn();
+  if (!q) { drop.classList.remove('open'); return; }
+  const toKatakana = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  const qk = toKatakana(q);
+  const results = projectMembers.filter(m => m.name.includes(q) || m.name.includes(qk) || toKatakana(m.name).includes(qk));
+  if (results.length === 0) { drop.classList.remove('open'); return; }
+  drop.innerHTML = results.map(m =>
+    `<div class="brand-option" onmousedown="selectStore('${m.gid}','${m.name.replace(/'/g,"\\'")}')"> ${m.name}</div>`
+  ).join('');
+  drop.classList.add('open');
+}
+function selectStore(gid, name) {
+  selectedMember = { gid, name };
+  document.getElementById('store-input').value = name;
+  document.getElementById('store-drop').classList.remove('open');
+  updateSubmitBtn();
+}
+function closeStoreDrop() {
+  setTimeout(() => document.getElementById('store-drop').classList.remove('open'), 150);
+}
+function resetPat() {
+  if (!confirm('APIキーをリセットしますか？')) return;
+  localStorage.removeItem('asana_pat');
+  ASANA_PAT = '';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('pat-screen').style.display = 'block';
+  document.getElementById('pat-input').value = '';
+}
+// --- Category ---
+function selectCat(btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  document.getElementById('fields-bag').style.display =
+    (currentCat === 'ブランドバッグ' || currentCat === 'ブランド小物') ? 'block' : 'none';
+  document.getElementById('fields-jewelry').style.display =
+    currentCat === 'ブランドジュエリー' ? 'block' : 'none';
+  document.getElementById('fields-watch').style.display =
+    currentCat === '時計' ? 'block' : 'none';
+  document.getElementById('fields-metal').style.display =
+    currentCat === '貴金属' ? 'block' : 'none';
+  const isBrandCat = currentCat === 'ブランドバッグ' || currentCat === 'ブランド小物' || currentCat === 'ブランドジュエリー';
+  document.getElementById('field-brand-notes').style.display = isBrandCat ? 'block' : 'none';
+  document.getElementById('field-images').style.display = 'block';
+  document.getElementById('item-actions').style.display = 'flex';
+}
+// --- Images ---
+const BRANDS = {
+  'ブランドバッグ': ['ルイヴィトン','エルメス','グッチ','クロエ','ケイトスペード','コーチ','サンローラン','シャネル','ダンヒル','トリーバーチ','バーバリー','サルヴァトーレフェラガモ','プラダ','ブルガリ','フルラ','マークジェイコブス','マイケルコース','ロエベ','マルニ','ティファニー','ヴァレクストラ','フェンディ','ジバンシィ','クリスチャンディオール','ミュウミュウ','カルティエ','ヴェルサーチ','バレンシアガ','バカラ','ヴァレンティノ','メゾンマルジェラ','ドルチェ＆ガッバーナ','バオバオ','ゴヤール','セリーヌ','ボッテガヴェネタ','ハンター','ステラマッカートニー','ヴィヴィアンウエストウッド','クリスチャンルブタン','ロンシャン','バリー','プリマクラッセ','ジミーチュウ','モンブラン','MCM','サマンサ','ポーター','キプリング','マンハッタンポーテージ','パトリックコックス','クロムハーツ','エトロ','ゲス','アルマーニ','カルバンクライン','トミーヒルフィガー','ディーゼル','レスポートサック','マリオバレンチノ','ボルボネーゼ','フェイラー','アンテプリマ','キャスキッドソン','イルビゾンテ','ポールスミス','アニエスベー','シーバイクロエ','オロビアンコ','フルボ','ダコタ','ハンティングワールド'],
+  'ブランド小物': ['ルイヴィトン','エルメス','グッチ','クロエ','ケイトスペード','コーチ','サンローラン','シャネル','ダンヒル','トリーバーチ','バーバリー','サルヴァトーレフェラガモ','プラダ','ブルガリ','フルラ','マークジェイコブス','マイケルコース','ロエベ','マルニ','ティファニー','ヴァレクストラ','フェンディ','ジバンシィ','クリスチャンディオール','ミュウミュウ','カルティエ','ヴェルサーチ','バレンシアガ','バカラ','ヴァレンティノ','メゾンマルジェラ','ドルチェ＆ガッバーナ','バオバオ','ゴヤール','セリーヌ','ボッテガヴェネタ','クロムハーツ','エトロ','ゲス','アルマーニ','カルバンクライン','トミーヒルフィガー','ディーゼル','ポールスミス'],
+  'ブランドジュエリー': ['ルイヴィトン','エルメス','グッチ','クロエ','ケイトスペード','コーチ','サンローラン','シャネル','ダンヒル','トリーバーチ','バーバリー','サルヴァトーレフェラガモ','プラダ','ブルガリ','フルラ','マークジェイコブス','マイケルコース','ロエベ','マルニ','ティファニー','フェンディ','ジバンシィ','クリスチャンディオール','ミュウミュウ','カルティエ','ヴェルサーチ','バレンシアガ','バカラ','ヴァレンティノ','ドルチェ＆ガッバーナ','セリーヌ','ボッテガヴェネタ','ブシュロン','ハリーウィンストン','ミキモト','ポメラート','グラフ','タサキ','ヴァンクリーフアーペル','モーブッサン','ジミーチュウ','ショパール','フレッド','ショーメ','スワロフスキー','ダミアーニ','ヴィヴィアンウエストウッド','4℃','クロムハーツ','カルバンクライン','トミーヒルフィガー','ディーゼル','ゲス','ポリス'],
+  '時計': ['グランドセイコー','クレドール','ロレックス','オメガ','タグホイヤー','ロンジン','パテックフィリップ','オーデマピゲ','ヴァシュロンコンスタンタン','A.ランゲ＆ゾーネ','ブレゲ','ブランパン','ジャガールクルト','チューダー','IWC','パネライ','ゼニス','ブライトリング','カルティエ','ティファニー','エルメス','グッチ','ショパール','ピアジェ','クラスヒュッテオリジナル','ハリーウィンストン','シャネル','ラドー','ジラールペルゴ','コルム','オリス','ノモスグラスヒュッテ','ユリスナルダン','フレデリックコンスタント','ハミルトン','ティソ','モンブラン','ユンハンス','エドックス','ドルチェ＆ガッバーナ','セイコー','カシオ','シチズン','ザシチズン','オリエント','オリエントスター','ガガミラノ','ダニエルウエリントン','コーチ','ケートスペード','マイケルコース','ポールスミス','ディーゼル','タイメックス','ルミノックス','ヴェルサーチェ','ポリス','フェンディ','フェラガモ','ドルチェ＆ガッバーナ','ダンヒル','バーバリー','アルマーニ','フルラ','トミーヒルフィガー','カルバンクライン','ベル＆ロス','フランクミュラー','ルイヴィトン','ブルガリ','ボーム＆メルシエ','ジン','ハブロット']
+};
+function searchBrand(input, dropId) {
+  const q = input.value.trim();
+  const drop = document.getElementById(dropId);
+  if (!q || q.length < 1) { drop.classList.remove('open'); return; }
+  const cat = currentCat || '';
+  const list = BRANDS[cat] || [];
+  // ひらがな→カタカナ変換して部分一致
+  const toKatakana = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  const qk = toKatakana(q);
+  const results = list.filter(b => b.includes(q) || b.includes(qk) || toKatakana(b).includes(qk));
+  if (results.length === 0) { drop.classList.remove('open'); return; }
+  drop.innerHTML = results.slice(0, 20).map(b =>
+    '<div class="brand-option" onmousedown="selectBrand(\'' + b + '\',\'' + input.id + '\',\'' + dropId + '\')">' + b + '</div>'
+  ).join('');
+  drop.classList.add('open');
+}
+function selectBrand(val, inputId, dropId) {
+  document.getElementById(inputId).value = val;
+  document.getElementById(dropId).classList.remove('open');
+}
+function closeDrop(dropId) {
+  setTimeout(() => {
+    const d = document.getElementById(dropId);
+    if (d) d.classList.remove('open');
+  }, 150);
+}
+function selectRepeater(btn) {
+  document.querySelectorAll('[data-repeater]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectAimi(btn) {
+  document.querySelectorAll('[data-aimi]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isYes = btn.dataset.aimi === 'はい';
+  const reitenField = document.getElementById('field-reiten');
+  reitenField.style.display = isYes ? 'block' : 'none';
+  if (!isYes) {
+    document.querySelectorAll('[data-reiten]').forEach(b => b.classList.remove('active'));
+  }
+}
+function selectReiten(btn) {
+  document.querySelectorAll('[data-reiten]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectBrandNote(btn) {
+  document.querySelectorAll('[data-brandnote]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isYes = btn.dataset.brandnote === 'はい';
+  document.getElementById('brand-note-checks').style.display = isYes ? 'block' : 'none';
+  if (!isYes) {
+    document.querySelectorAll('.brand-note-item').forEach(b => { b.classList.remove('checked'); b.querySelector('.check-icon').textContent = ''; });
+  }
+}
+function selectAuth(btn) {
+  document.querySelectorAll('[data-auth]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectTurbo(btn) {
+  document.querySelectorAll('[data-turbo]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectSmell(btn) {
+  document.querySelectorAll('[data-smell]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectJsei(btn) {
+  document.querySelectorAll('[data-jsei]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function showAzukariModal() {
+  const existing = document.getElementById('modal-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:280px;width:100%;text-align:center';
+  box.innerHTML = '<div style="font-size:28px;margin-bottom:12px">&#9888;</div><div style="font-size:16px;font-weight:700;color:#1A1916;margin-bottom:8px">預かり品</div><div style="font-size:14px;color:#7A7770;margin-bottom:20px">磁性あり。この商品を「預かり対応商品」に追加します。</div>';
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'キャンセル';
+  cancelBtn.style.cssText = 'flex:1;background:#F0EDE8;color:#7A7770;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer';
+  cancelBtn.onclick = function() {
+    document.querySelectorAll('[data-jsei]').forEach(b => b.classList.remove('active'));
+    overlay.remove();
+  };
+  const okBtn = document.createElement('button');
+  okBtn.textContent = '預かりに追加';
+  okBtn.style.cssText = 'flex:1;background:#2B4C3F;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer';
+  okBtn.onclick = function() {
+    addToAzukariCart();
+    overlay.remove();
+  };
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(okBtn);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function showAzukariConfirm(item) {
+  const existing = document.getElementById('modal-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:280px;width:100%;text-align:center';
+  box.innerHTML = '<div style="font-size:28px;margin-bottom:12px">⚠️</div><div style="font-size:15px;font-weight:700;color:#1A1916;margin-bottom:8px">磁性あり</div><div style="font-size:13px;color:#7A7770;margin-bottom:20px">この商品は通常査定には入りません。預かり対応品として追加しますか？</div>';
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+  const noBtn = document.createElement('button');
+  noBtn.textContent = 'No';
+  noBtn.style.cssText = 'flex:1;background:#F0EDE8;color:#7A7770;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer';
+  noBtn.onclick = function() { overlay.remove(); };
+  const yesBtn = document.createElement('button');
+  yesBtn.textContent = 'Yes';
+  yesBtn.style.cssText = 'flex:1;background:#2B4C3F;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer';
+  yesBtn.onclick = function() {
+    overlay.remove();
+    azukariCart.push(item);
+    renderAzukariList();
+    resetItem();
+    updateSubmitBtn();
+    showToast(`⚠️ 預かり対応品 ${azukariCart.length} 点に追加しました`);
+  };
+  btnRow.appendChild(noBtn);
+  btnRow.appendChild(yesBtn);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function addToAzukariCart() {
+  const hijuNG = document.getElementById('hiju-ng-btn').classList.contains('active');
+  const metalData = {
+    kinshu: document.getElementById('kinshu').value,
+    weight: document.getElementById('weight-metal').value,
+    hiju: hijuNG ? 'できなかった' : document.getElementById('hiju-val').value,
+    jsei: '有',
+    stone: document.querySelector('[data-stone].active')?.dataset.stone || '',
+    stoneMain: document.getElementById('stone-main-select').value,
+    stoneWaki: document.getElementById('stone-waki-select').value,
+    gem: document.querySelector('[data-gem].active')?.dataset.gem || '',
+    dia: document.querySelector('[data-dia].active')?.dataset.dia || '',
+    ctTop: document.getElementById('ct-top').value,
+    ctWaki: document.getElementById('ct-waki').value,
+  };
+  const rank = document.querySelector('[data-rank].active')?.dataset.rank || '';
+  const conditions = Array.from(document.querySelectorAll('.check-item.checked:not(.watch-acc)')).map(el => el.dataset.value);
+  azukariCart.push({ metalData, rank, conditions, images: [...currentImages] });
+  renderAzukariList();
+  resetItem();
+  updateSubmitBtn();
+  showToast(`預かり品 ${azukariCart.length} 点を追加しました`);
+}
+function renderAzukariList() {
+  const list = document.getElementById('azukari-list');
+  if (azukariCart.length === 0) { list.innerHTML = '<div class="empty-cart">預かり品なし</div>'; return; }
+  list.innerHTML = azukariCart.map((item, i) => {
+    const m = item.metalData;
+    return `<div class="cart-item" style="border-left:3px solid var(--danger)">
+      <div class="cart-item-info">
+        <div class="cart-item-num" style="color:var(--danger)">預 ${i + 1}</div>
+        <div class="cart-item-desc">
+          貴金属（磁性有）
+          ${m.kinshu ? `<br>${m.kinshu}` : ''}
+          ${m.weight ? ` ${m.weight}g` : ''}
+          ${m.hiju ? `<br>比重: ${m.hiju}` : ''}
+          ${item.rank ? `<br>状態: ${item.rank}` : ''}
+          ${item.conditions && item.conditions.length > 0 ? `<br><span style="color:var(--sub);font-size:12px">${item.conditions.join('・')}</span>` : ''}
+        </div>
+        ${item.images.length > 0 ? `<div class="cart-item-img">📷 画像 ${item.images.length}枚</div>` : ''}
+      </div>
+      <button class="del-btn" onclick="removeFromAzukari(${i})">×</button>
+    </div>`;
+  }).join('');
+}
+function removeFromAzukari(i) {
+  azukariCart.splice(i, 1);
+  renderAzukariList();
+  updateSubmitBtn();
+}
+function selectStone(btn) {
+  document.querySelectorAll('[data-stone]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const v = btn.dataset.stone;
+  const hasMain = v === '主石のみ' || v === '両方';
+  const hasWaki = v === '脇石のみ' || v === '両方';
+  const hasStone = v !== 'なし';
+  document.getElementById('field-stone-main').style.display = hasMain ? 'block' : 'none';
+  document.getElementById('field-stone-waki').style.display = hasWaki ? 'block' : 'none';
+  document.getElementById('field-gem').style.display = hasStone ? 'block' : 'none';
+  document.getElementById('field-dia').style.display = hasStone ? 'block' : 'none';
+  document.getElementById('field-ct').style.display = hasStone ? 'block' : 'none';
+  if (!hasMain) document.getElementById('stone-main-select').value = '';
+  if (!hasWaki) document.getElementById('stone-waki-select').value = '';
+}
+function selectGem(btn) {
+  document.querySelectorAll('[data-gem]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectDia(btn) {
+  document.querySelectorAll('[data-dia]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleHijuNG(btn) {
+  btn.classList.toggle('active');
+  document.getElementById('hiju-val').disabled = btn.classList.contains('active');
+  if (btn.classList.contains('active')) document.getElementById('hiju-val').value = '';
+}
+function selectRank(btn) {
+  document.querySelectorAll('[data-rank]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleCheckAcc(el) {
+  el.classList.toggle('checked');
+  el.querySelector('.check-icon').textContent = el.classList.contains('checked') ? '✓' : '';
+}
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.querySelector('.check-icon').textContent = el.classList.contains('checked') ? '✓' : '';
+}
+function addImages(input) {
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentImages.push({ file, dataUrl: e.target.result });
+      renderImagePreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+function renderImagePreview() {
+  const preview = document.getElementById('img-preview');
+  preview.innerHTML = '';
+  currentImages.forEach((img, i) => {
+    const div = document.createElement('div');
+    div.className = 'img-preview-item';
+    div.innerHTML = `<img src="${img.dataUrl}"><button class="rm-img" onclick="removeImage(${i})">×</button>`;
+    preview.appendChild(div);
+  });
+}
+function removeImage(i) {
+  currentImages.splice(i, 1);
+  renderImagePreview();
+}
+// --- Cart ---
+function addToCart() {
+  if (!currentCat) return showToast('カテゴリを選択してください');
+  let brand = '', productName = '', serial = '', metal = '';
+  if (currentCat === 'ブランドバッグ' || currentCat === 'ブランド小物') {
+    brand = document.getElementById('brand-bag').value.trim();
+    productName = document.getElementById('name-bag').value.trim();
+    serial = document.getElementById('serial-bag').value.trim();
+    if (!brand) return showToast('ブランドを入力してください');
+    if (!productName) return showToast('商品名を入力してください');
+  } else if (currentCat === 'ブランドジュエリー') {
+    brand = document.getElementById('brand-jewelry').value.trim();
+    productName = document.getElementById('name-jewelry').value.trim();
+    serial = document.getElementById('serial-jewelry').value.trim();
+    metal = document.getElementById('metal').value;
+    if (!brand) return showToast('ブランドを入力してください');
+    if (!productName) return showToast('商品名を入力してください');
+    if (!metal) return showToast('金属種類を選択してください');
+  }
+  // collect watch fields
+  let watchData = {};
+  if (currentCat === '時計') {
+    watchData = {
+      brand: document.getElementById('brand-watch').value.trim(),
+      name: document.getElementById('name-watch').value.trim(),
+      model: document.getElementById('model-watch').value.trim(),
+      serial: document.getElementById('serial-watch').value.trim(),
+      caseSize: document.getElementById('size-w').value.trim(),
+      turbo: document.querySelector('[data-turbo].active')?.dataset.turbo || '',
+      accessories: Array.from(document.querySelectorAll('.watch-acc.checked')).map(el => el.dataset.value),
+      conditions: Array.from(document.querySelectorAll('.watch-cond.checked')).map(el => el.dataset.value),
+    };
+    if (!watchData.brand) return showToast('ブランドを入力してください');
+    if (!watchData.name) return showToast('商品名を入力してください');
+    if (!watchData.caseSize) return showToast('ケースサイズを入力してください');
+    if (!watchData.turbo) return showToast('ターボテスターを選択してください');
+  }
+  // collect metal fields
+  let metalData = {};
+  if (currentCat === '貴金属') {
+    const hijuNG = document.getElementById('hiju-ng-btn').classList.contains('active');
+    const hijuVal = document.getElementById('hiju-val').value;
+    const kinshu = document.getElementById('kinshu').value;
+    const weight = document.getElementById('weight-metal').value;
+    const jsei = document.querySelector('[data-jsei].active')?.dataset.jsei || '';
+    const stone = document.querySelector('[data-stone].active')?.dataset.stone || '';
+    if (!kinshu) return showToast('金種を選択してください');
+    if (!weight) return showToast('総重量を入力してください');
+    if (!hijuNG && !hijuVal) return showToast('比重値を入力するか「できなかった」を選択してください');
+    if (!jsei) return showToast('磁性を選択してください');
+    if (!stone) return showToast('主石・脇石を選択してください');
+    metalData = {
+      kinshu,
+      weight,
+      hiju: hijuNG ? 'できなかった' : hijuVal,
+      jsei,
+      stone,
+      stoneMain: document.getElementById('stone-main-select').value,
+      stoneWaki: document.getElementById('stone-waki-select').value,
+      gem: document.querySelector('[data-gem].active')?.dataset.gem || '',
+      dia: document.querySelector('[data-dia].active')?.dataset.dia || '',
+      ctTop: document.getElementById('ct-top').value,
+      ctWaki: document.getElementById('ct-waki').value,
+    };
+  }
+  // ブランド共通特記事項
+  const brandNoteItems = Array.from(document.querySelectorAll('.brand-note-item.checked')).map(el => el.dataset.value);
+  const isJunk = brandNoteItems.includes('破れや破損');
+  // 貴金属かつ磁性有 → 確認モーダル → 預かりカートへ
+  if (currentCat === '貴金属' && metalData.jsei === '有') {
+    showAzukariConfirm({ metalData, images: [...currentImages] });
+    return;
+  }
+  cart.push({ cat: currentCat, brand, productName, serial, metal, brandNoteItems, isJunk, watchData, metalData, images: [...currentImages] });
+  renderCart();
+  resetItem();
+  updateSubmitBtn();
+  showToast(`商品 ${cart.length} 点目を追加しました`);
+}
+function renderCart() {
+  const list = document.getElementById('cart-list');
+  if (cart.length === 0) { list.innerHTML = '<div class="empty-cart">まだ商品がありません</div>'; return; }
+  list.innerHTML = cart.map((item, i) => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-num">${i + 1}</div>
+        <div class="cart-item-desc">
+          ${item.cat} / ${item.brand}
+          ${item.productName ? `<br>${item.productName}` : ''}
+          ${item.serial ? `<br>型番: ${item.serial}` : ''}
+          ${item.metal ? `<br>金属: ${item.metal}` : ''}
+          ${item.isJunk ? `<br><span style="color:var(--danger);font-weight:700">ジャンク扱い</span>` : ''}
+          ${item.brandNoteItems && item.brandNoteItems.length > 0 ? `<br><span style="color:var(--sub);font-size:12px">${item.brandNoteItems.join('・')}</span>` : ''}
+          ${item.cat === '時計' && item.watchData && item.watchData.brand ? `<br>${item.watchData.brand} ${item.watchData.name}` : ''}
+          ${item.cat === '時計' && item.watchData && item.watchData.conditions && item.watchData.conditions.length > 0 ? `<br><span style="color:var(--sub);font-size:12px">${item.watchData.conditions.join('・')}</span>` : ''}
+          ${item.cat === '貴金属' && item.metalData && item.metalData.kinshu ? `<br>${item.metalData.kinshu} ${item.metalData.weight ? item.metalData.weight+'g' : ''}` : ''}
+        </div>
+        ${item.images.length > 0 ? `<div class="cart-item-img">📷 画像 ${item.images.length}枚</div>` : ''}
+      </div>
+      <button class="del-btn" onclick="removeFromCart(${i})">×</button>
+    </div>
+  `).join('');
+}
+function removeFromCart(i) {
+  cart.splice(i, 1);
+  renderCart();
+  updateSubmitBtn();
+}
+function resetItem() {
+  currentCat = null;
+  currentImages = [];
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fields-bag').style.display = 'none';
+  document.getElementById('fields-jewelry').style.display = 'none';
+  document.getElementById('fields-watch').style.display = 'none';
+  document.getElementById('fields-metal').style.display = 'none';
+  document.getElementById('field-brand-notes').style.display = 'none';
+  document.getElementById('brand-note-checks').style.display = 'none';
+  document.querySelectorAll('[data-brandnote]').forEach(b => b.classList.remove('active'));
+  ['field-gem','field-dia','field-ct','field-stone-main','field-stone-waki'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  ['stone-main-select','stone-waki-select'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('field-images').style.display = 'none';
+  document.getElementById('item-actions').style.display = 'none';
+  document.getElementById('img-preview').innerHTML = '';
+  document.querySelectorAll('[data-rank]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[data-jsei],[data-stone],[data-gem],[data-dia],[data-turbo],[data-auth],[data-smell]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.watch-acc,.watch-cond').forEach(b => { b.classList.remove('checked'); b.querySelector('.check-icon').textContent = ''; });
+  ['brand-watch','name-watch','model-watch','serial-watch','size-w',
+   'kinshu','weight-metal','hiju-val','ct-top','ct-waki'].forEach(id => {
+    const el = document.getElementById(id); if (el) { el.value = ''; el.disabled = false; }
+  });
+  document.querySelectorAll('.check-item').forEach(b => { b.classList.remove('checked'); b.querySelector('.check-icon').textContent = ''; });
+  ['name-bag','serial-bag','brand-bag','name-jewelry','serial-jewelry','metal','brand-jewelry']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+function updateSubmitBtn() {
+  const req = document.getElementById('requester').value.trim();
+  document.getElementById('submit-btn').disabled = !(selectedMember && req && (cart.length > 0 || azukariCart.length > 0));
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('requester').addEventListener('input', updateSubmitBtn);
+  init();
+});
+// --- Asana submit ---
+async function submitToAsana() {
+  const store = selectedMember ? selectedMember.name : '';
+  const requester = document.getElementById('requester').value.trim();
+  const totalItems = document.getElementById('total-items').value || cart.length;
+  if (!store || !requester || (cart.length === 0 && azukariCart.length === 0)) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+  const NL = String.fromCharCode(10);
+  const itemTexts = cart.map((item, i) => {
+    const parts = [(i + 1) + ':', 'カテゴリ: ' + item.cat];
+    if (item.brand) parts.push('ブランド: ' + item.brand);
+    if (item.productName) parts.push('商品名: ' + item.productName);
+    if (item.serial) parts.push('型番: ' + item.serial);
+    if (item.metal) parts.push('金属種類: ' + item.metal);
+    if (item.isJunk) parts.push('⚠️ ジャンク扱い');
+    if (item.brandNoteItems && item.brandNoteItems.length > 0) parts.push('状態: ' + item.brandNoteItems.join('・'));
+    if (item.cat === '時計' && item.watchData) {
+      const w = item.watchData;
+      if (w.brand) parts.push('ブランド: ' + w.brand);
+      if (w.name) parts.push('商品名: ' + w.name);
+      if (w.model) parts.push('型番: ' + w.model);
+      if (w.serial) parts.push('シリアル: ' + w.serial);
+      if (w.caseSize) parts.push('ケースサイズ: ' + w.caseSize);
+      if (w.turbo) parts.push('ターボテスター: ' + w.turbo);
+      if (w.accessories && w.accessories.length > 0) parts.push('付属品: ' + w.accessories.join('・'));
+      if (w.conditions && w.conditions.length > 0) parts.push('状態: ' + w.conditions.join('・'));
+    }
+    if (item.cat === '貴金属' && item.metalData) {
+      const m = item.metalData;
+      if (m.kinshu) parts.push('金種: ' + m.kinshu); else parts.push('金種: 未選択');
+      if (m.weight) parts.push('総重量: ' + m.weight + 'g');
+      if (m.hiju) parts.push('比重値: ' + m.hiju);
+      if (m.jsei) parts.push('磁性: ' + m.jsei);
+      if (m.stone) parts.push('主石・脇石: ' + m.stone);
+      if (m.stoneMain) parts.push('主石種類: ' + m.stoneMain);
+      if (m.stoneWaki) parts.push('脇石種類: ' + m.stoneWaki);
+      if (m.gem) parts.push('ジェムテスター: ' + m.gem);
+      if (m.dia) parts.push('ダイヤテスター: ' + m.dia);
+      const ct = [m.ctTop ? '主石'+m.ctTop+'ct' : '', m.ctWaki ? '脇石'+m.ctWaki+'ct' : ''].filter(Boolean).join(' ');
+      if (ct) parts.push('ct: ' + ct);
+    }
+    if (item.rank) parts.push('状態: ' + item.rank);
+    if (item.conditions && item.conditions.length > 0) parts.push('状態詳細: ' + item.conditions.join('・'));
+    if (item.images.length > 0) parts.push('画像: ' + item.images.length + '枚添付');
+    return parts.join(NL);
+  });
+  const repeaterBtn = document.querySelector('[data-repeater].active');
+  const repeater = repeaterBtn ? repeaterBtn.dataset.repeater : '';
+  const aimiBtn = document.querySelector('[data-aimi].active');
+  const aimi = aimiBtn ? aimiBtn.dataset.aimi : '';
+  const reitenBtn = document.querySelector('[data-reiten].active');
+  const reiten = reitenBtn ? reitenBtn.dataset.reiten : '';
+  const headerLines = ['<start>', '店舗: ' + store, '起票者: ' + requester, '総点数: ' + totalItems + '点'];
+  if (repeater) headerLines.push('リピーター: ' + repeater);
+  if (aimi) headerLines.push('相見積もり: ' + aimi);
+  if (aimi === 'はい' && reiten) headerLines.push('再来店: ' + reiten);
+  const lines = headerLines.join(NL) + NL + NL + itemTexts.join(NL + NL) + NL + NL + '<end>';
+  const taskName = `【査定依頼】${store} / ${requester} (${cart.length}点)`;
+  try {
+    let mainTaskId = null;
+    // 通常カートのタスク作成
+    if (cart.length > 0) {
+      const taskRes = await fetch('https://app.asana.com/api/1.0/tasks', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${ASANA_PAT}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: { name: taskName, notes: lines, projects: [ASANA_PROJECT_ID], followers: selectedMember ? [selectedMember.gid] : [] } })
+      });
+      const taskData = await taskRes.json();
+      if (!taskRes.ok) throw new Error(taskData.errors?.[0]?.message || '作成失敗');
+      mainTaskId = taskData.data.gid;
+      const allImages = cart.flatMap(item => item.images);
+      for (const img of allImages) {
+        const formData = new FormData();
+        formData.append('file', img.file, img.file.name);
+        await fetch(`https://app.asana.com/api/1.0/tasks/${mainTaskId}/attachments`, {
+          method: 'POST', headers: { 'Authorization': `Bearer ${ASANA_PAT}` }, body: formData
+        });
+      }
+    }
+    // 預かり品タスクを別途作成
+    if (azukariCart.length > 0) {
+      const NL2 = String.fromCharCode(10);
+      const azukariTexts = azukariCart.map((item, i) => {
+        const m = item.metalData;
+        const parts = [(i+1)+':', 'カテゴリ: 貴金属', '⚠️ 磁性: 有'];
+        if (m.kinshu) parts.push('金種: ' + m.kinshu);
+        if (m.weight) parts.push('総重量: ' + m.weight + 'g');
+        if (m.hiju) parts.push('比重値: ' + m.hiju);
+        if (m.stone) parts.push('主石・脇石: ' + m.stone);
+        if (m.stoneMain) parts.push('主石種類: ' + m.stoneMain);
+        if (m.stoneWaki) parts.push('脇石種類: ' + m.stoneWaki);
+        if (m.gem) parts.push('ジェムテスター: ' + m.gem);
+        if (m.dia) parts.push('ダイヤテスター: ' + m.dia);
+        const ct = [m.ctTop?'主石'+m.ctTop+'ct':'', m.ctWaki?'脇石'+m.ctWaki+'ct':''].filter(Boolean).join(' ');
+        if (ct) parts.push('ct: ' + ct);
+        if (item.rank) parts.push('状態: ' + item.rank);
+        if (item.conditions.length > 0) parts.push('状態詳細: ' + item.conditions.join('・'));
+        if (item.images.length > 0) parts.push('画像: ' + item.images.length + '枚添付');
+        return parts.join(NL2);
+      });
+      const azukariHeader = ['<start>', '店舗: ' + store, '起票者: ' + requester, '【検査預かり】'].join(NL2);
+      const azukariNotes = azukariHeader + NL2 + NL2 + azukariTexts.join(NL2 + NL2) + NL2 + NL2 + '<end>';
+      const azukariTaskName = `【検査預かり】${store} / ${requester} (${azukariCart.length}点)`;
+      const azukariRes = await fetch('https://app.asana.com/api/1.0/tasks', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${ASANA_PAT}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: {
+          name: azukariTaskName,
+          notes: azukariNotes,
+          projects: [ASANA_PROJECT_ID],
+          followers: selectedMember ? [selectedMember.gid] : []
+        }})
+      });
+      const azukariData = await azukariRes.json();
+      if (azukariRes.ok) {
+        const azukariTaskId = azukariData.data.gid;
+        // セクションに移動
+        await fetch(`https://app.asana.com/api/1.0/sections/${AZUKARI_SECTION_ID}/addTask`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${ASANA_PAT}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: { task: azukariTaskId } })
+        });
+        const allAzukariImages = azukariCart.flatMap(item => item.images);
+        for (const img of allAzukariImages) {
+          const fd = new FormData();
+          fd.append('file', img.file, img.file.name);
+          await fetch(`https://app.asana.com/api/1.0/tasks/${azukariTaskId}/attachments`, {
+            method: 'POST', headers: { 'Authorization': `Bearer ${ASANA_PAT}` }, body: fd
+          });
+        }
+      }
+    }
+    document.getElementById('submit-result').classList.add('show');
+    const linkId = mainTaskId;
+    document.getElementById('submit-task-link').innerHTML = linkId
+      ? `タスクID: ${linkId}<br><a href="https://app.asana.com/0/${ASANA_PROJECT_ID}/${linkId}" target="_blank" style="color:var(--accent)">Asanaで確認する →</a>`
+      : `送信完了（預かり品のみ）`;
+    document.getElementById('section-header').style.display = 'none';
+    document.getElementById('section-item').style.display = 'none';
+    document.getElementById('section-cart').style.display = 'none';
+  } catch (e) {
+    showToast('エラー: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Asanaに送信';
+  }
+}
+function resetAll() {
+  cart = [];
+  azukariCart = [];
+  renderAzukariList();
+  currentCat = null;
+  currentImages = [];
+  selectedMember = null;
+  document.getElementById('store-input').value = '';
+  document.getElementById('requester').value = '';
+  document.getElementById('total-items').value = '';
+  renderCart();
+  resetItem();
+  updateSubmitBtn();
+  document.getElementById('submit-result').classList.remove('show');
+  document.getElementById('section-header').style.display = 'block';
+  document.getElementById('section-item').style.display = 'block';
+  document.getElementById('section-cart').style.display = 'block';
+}
+function showModal(msg) {
+  const existing = document.getElementById('modal-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:280px;width:100%;text-align:center';
+  box.innerHTML = '<div style="font-size:28px;margin-bottom:12px">&#9888;</div><div style="font-size:16px;font-weight:700;color:#1A1916;margin-bottom:8px">&#39640;&#12363;&#12426;&#26696;&#20214;</div><div style="font-size:14px;color:#7A7770;margin-bottom:20px">' + msg + '</div>';
+  const btn = document.createElement('button');
+  btn.textContent = 'OK';
+  btn.style.cssText = 'background:#2B4C3F;color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%';
+  btn.onclick = function() { overlay.remove(); };
+  box.appendChild(btn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function toHankaku(el) {
+  el.value = el.value.replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
