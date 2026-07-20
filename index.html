@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#2E3C6E">
 <title>リモート査定 | Telesatei</title>
 <style>
@@ -603,6 +603,28 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 document.addEventListener('DOMContentLoaded', init);
+// iOSキーボード対策: visualViewportに合わせて#rootの高さを追従させる
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  let fitRaf = null;
+  const fit = () => {
+    if (fitRaf) cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(() => {
+      const root = document.getElementById('root');
+      if (!root) return;
+      const kb = window.innerHeight - vv.height;
+      root.style.height = (kb > 60 ? vv.height : window.innerHeight) + 'px';
+      window.scrollTo(0, 0);
+      // フォーカス中の入力欄をシート内で見える位置へ
+      const ae = document.activeElement;
+      if (kb > 60 && ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
+        ae.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  };
+  vv.addEventListener('resize', fit);
+  vv.addEventListener('scroll', fit);
+}
 </script>
 </body>
 </html>
